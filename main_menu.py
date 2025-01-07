@@ -74,7 +74,8 @@ def main_menu_mainloop():
         command=placeholder_automation,  # Action to perform when clicked
         height=40,
         width=200,
-        fg_color="lightblue"  # Background color of the button
+        state="disabled",
+        fg_color=button_blue,  # Button default color
     ).pack(pady=10)
 
     # Button to exit the main menu

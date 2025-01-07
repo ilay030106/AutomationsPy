@@ -22,7 +22,7 @@ def calculator_mainloop():
     # Create the calculator window
     app = ctk.CTk()
     app.title("Calculator")
-    app.geometry("450x550")  # Set the size of the window in pixels (width x height)
+    app.geometry("430x550")  # Set the size of the window in pixels (width x height)
 
     # Define custom fonts for display and buttons
     font_large = ("Helvetica", 20)  # Font for the display
@@ -75,20 +75,18 @@ def calculator_mainloop():
         ctk.CTkButton(app, text=b, command=lambda x=b: clk(x), font=font_buttons,
                       height=60, width=80, corner_radius=20, fg_color=button_blue,
                       hover_color=button_blue_hover, text_color="white") \
-            .grid(row=i // 4 + 2, column=i % 4, pady=5, padx=5)
+            .grid(row=i // 4 + 2, column=i % 4)
 
     # Add a button to return to the main menu
     ctk.CTkButton(app, text="Exit to Main Menu", command=return_to_main, font=font_buttons,
-                  height=40, width=180, corner_radius=15, fg_color="#ff0f07",
+                  height=40, width=300, corner_radius=15, fg_color="#ff0f07",
                   hover_color="#6e0602", text_color="white") \
-        .grid(row=7, column=0, columnspan=4, pady=10)
+        .grid(row=6, column=1, columnspan=4, pady=10)
 
     # Add padding and spacing for the entire grid
     for i in range(8):
-        app.grid_rowconfigure(i, weight=1)
-        app.grid_columnconfigure(i % 4, weight=1)
+     app.grid_rowconfigure(i, weight=1)
 
-    # Start the main event loop for the calculator
     app.mainloop()
 
 if __name__ == "__main__":
