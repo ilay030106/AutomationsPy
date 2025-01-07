@@ -55,7 +55,7 @@ def calculator_mainloop():
         # Create a new scrollable frame
         scrollable_frame = ctk.CTkScrollableFrame(app, width=300, height=400)
         scrollable_frame.grid(row=2, column=4, rowspan=4, padx=10, sticky="nsew")
-
+        scrollable_frame.grid_columnconfigure(0, weight=1)
         def set_equation(equation):
             disp.delete(0, ctk.END)
             disp.insert(0, equation)
@@ -65,11 +65,11 @@ def calculator_mainloop():
             ctk.CTkButton(
                 scrollable_frame,
                 text=equation,
-                font=("Helvetica", 20),
-                anchor="w",
+                font=("Helvetica", 24),
+                anchor="center",
                 command=lambda eq=equation: set_equation(eq),  # Pass equation to set_equation
                 fg_color="transparent",
-            ).grid(row=i, column=0, sticky="w", padx=10, pady=5)
+            ).grid(row=i, column=0, sticky="we", padx=10, pady=5)
 
     # Button click handler
     def clk(b):
