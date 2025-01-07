@@ -3,6 +3,7 @@ from tkinter import PhotoImage
 import customtkinter as ctk
 import tkinter.messagebox as messagebox
 from main_menu import main_menu_mainloop
+from PIL import Image, ImageTk
 
 def calculator_mainloop():
     """
@@ -24,7 +25,7 @@ def calculator_mainloop():
     # Create the calculator window
     app = ctk.CTk()
     app.title("Calculator")
-    app.geometry("430x550")  # Set the size of the window in pixels (width x height)
+    app.geometry("450x550")  # Set the size of the window in pixels (width x height)
 
     # Define custom fonts for display and buttons
     font_large = ("Helvetica", 22)  # Font for the display
@@ -34,8 +35,7 @@ def calculator_mainloop():
     # Entry widget for the calculator display
     disp = ctk.CTkEntry(app, font=font_display, justify="right", corner_radius=10, height=50, width=400)
     disp.grid(row=1, column=0, columnspan=4, pady=10, padx=10)
-    history=ctk.CTkButton(app,image=PhotoImage("history_icon.png"),height=60, width=60,fg_color="transparent")
-    history.grid(row=1, column=1, pady=10, padx=10)
+
 
     # Function to handle button clicks
     def clk(b):
@@ -79,17 +79,24 @@ def calculator_mainloop():
         ctk.CTkButton(app, text=b, command=lambda x=b: clk(x), font=font_buttons,
                       height=60, width=80, corner_radius=20, fg_color=button_blue,
                       hover_color=button_blue_hover, text_color="white") \
-            .grid(row=i // 4 + 2, column=i % 4)
+            .grid(row=i // 4 + 2, column=i % 4, pady=5, padx=5)
 
     # Add a button to return to the main menu
     ctk.CTkButton(app, text="Exit to Main Menu", command=return_to_main, font=font_buttons,
-                  height=40, width=300, corner_radius=15, fg_color="#ff0f07",
+                  height=40, width=220, corner_radius=15, fg_color="#ff0f07",
                   hover_color="#6e0602", text_color="white") \
-        .grid(row=6, column=1, columnspan=4, pady=10)
+        .grid(row=6, column=1, columnspan=2, pady=10, padx=5)
+
+    history_image = Image.open("history_icon.png").resize((60, 60))
+    history_icon = ImageTk.PhotoImage(history_image)
+    # Add a history button next to the return to main menu button
+    history = ctk.CTkButton(app, text="", image=history_icon,
+                            height=60, width=80, fg_color="transparent", text_color="white")
+    history.grid(row=6, column=3, pady=10, padx=5)
 
     # Add padding and spacing for the entire grid
     for i in range(8):
-     app.grid_rowconfigure(i, weight=1)
+        app.grid_rowconfigure(i, weight=1)
 
     app.mainloop()
 
