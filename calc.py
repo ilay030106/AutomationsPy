@@ -51,6 +51,8 @@ def calculator_mainloop():
         else:
             if '=' in disp.get():
                 disp.delete(0, disp.get().find('=') + 1)
+            if "Error" in disp.get():
+                disp.delete(0, ctk.END)
             disp.insert(ctk.END, b)
 
     # Function to return to the main menu
