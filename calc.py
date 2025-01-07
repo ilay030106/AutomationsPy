@@ -1,3 +1,5 @@
+from tkinter import PhotoImage
+
 import customtkinter as ctk
 import tkinter.messagebox as messagebox
 from main_menu import main_menu_mainloop
@@ -25,13 +27,15 @@ def calculator_mainloop():
     app.geometry("430x550")  # Set the size of the window in pixels (width x height)
 
     # Define custom fonts for display and buttons
-    font_large = ("Helvetica", 20)  # Font for the display
-    font_buttons = ("Helvetica", 18)  # Font for the buttons
+    font_large = ("Helvetica", 22)  # Font for the display
+    font_buttons = ("Helvetica", 20)  # Font for the buttons
     font_display = ("Helvetica", 24)  # Font for the input display
 
     # Entry widget for the calculator display
     disp = ctk.CTkEntry(app, font=font_display, justify="right", corner_radius=10, height=50, width=400)
     disp.grid(row=1, column=0, columnspan=4, pady=10, padx=10)
+    history=ctk.CTkButton(app,image=PhotoImage("history_icon.png"),height=60, width=60,fg_color="transparent")
+    history.grid(row=1, column=1, pady=10, padx=10)
 
     # Function to handle button clicks
     def clk(b):
