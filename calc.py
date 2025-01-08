@@ -94,6 +94,7 @@ def calculator_mainloop():
     # Return to main menu
     def return_to_main():
         app.destroy()
+        from main_menu import main_menu_mainloop
         main_menu_mainloop()
 
     # Initialize empty history
