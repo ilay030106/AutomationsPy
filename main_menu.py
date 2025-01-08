@@ -28,8 +28,14 @@ def main_menu_mainloop():
     font_title = ("Helvetica", 24, "bold")  # Font for the title text
     font_buttons = ("Helvetica", 18)  # Font for the buttons
 
+    # Configure the grid layout for the main menu
+    main_menu.columnconfigure(0, weight=1)
+    main_menu.rowconfigure(0, weight=1)
+
     # Create a title label at the top of the window
-    ctk.CTkLabel(main_menu, text="Choose an Automation", font=font_title).pack(pady=20)
+    ctk.CTkLabel(
+        main_menu, text="Choose an Automation", font=font_title
+    ).grid(row=0, column=0, pady=(20, 10), sticky="n")
 
     # Function to open the calculator GUI
     def open_calculator():
@@ -40,9 +46,7 @@ def main_menu_mainloop():
         starts its main event loop.
         """
         main_menu.destroy()
-        # Close the main menu window
         from calc import calculator_mainloop  # Import the calculator module
-
         calculator_mainloop()  # Start the calculator GUI
 
     # Function to handle placeholder automation
@@ -54,9 +58,14 @@ def main_menu_mainloop():
         """
         messagebox.showinfo("Automation", "This automation is under construction!")
 
+    # Create a frame for better layout
+    frame = ctk.CTkFrame(main_menu)
+    frame.grid(row=1, column=0, pady=10, padx=20, sticky="nsew")
+    frame.columnconfigure(0, weight=1)
+
     # Button to open the calculator GUI
     ctk.CTkButton(
-        main_menu,
+        frame,
         text="Open Calculator",  # Button text
         font=font_buttons,
         command=open_calculator,  # Action to perform when clicked
@@ -64,23 +73,24 @@ def main_menu_mainloop():
         width=200,  # Button width in pixels
         fg_color=button_blue,  # Button default color
         hover_color=button_blue_hover  # Hover color for the button
-    ).pack(pady=10)  # Add vertical padding around the button
+    ).grid(row=0, column=0, pady=(20, 10), padx=10)
 
     # Button for a placeholder automation
     ctk.CTkButton(
-        main_menu,
+        frame,
         text="Placeholder Automation",  # Button text
         font=font_buttons,
         command=placeholder_automation,  # Action to perform when clicked
         height=40,
         width=200,
-        state="disabled",
+        state=ctk.DISABLED,  # Properly disable the button
         fg_color=button_blue,  # Button default color
-    ).pack(pady=10)
+        hover_color=button_blue_hover,  # Hover color for the button
+    ).grid(row=1, column=0, pady=10, padx=10)
 
     # Button to exit the main menu
     ctk.CTkButton(
-        main_menu,
+        frame,
         text="Exit",  # Button text
         font=font_buttons,
         command=main_menu.destroy,  # Close the main menu window
@@ -88,7 +98,7 @@ def main_menu_mainloop():
         width=200,
         fg_color="red",  # Background color of the button
         hover_color="darkred"  # Hover color for the button
-    ).pack(pady=10)
+    ).grid(row=2, column=0, pady=(10, 20), padx=10)
 
     # Start the main event loop for the main menu
     main_menu.mainloop()
