@@ -90,12 +90,7 @@ def list_mainloop():
     lst.add_item("task 3")
 
     # Example of removing an item
-    def remove_task_example():
-        lst.confirm_remove_item("task 2")
 
-    # Add a button to trigger removal
-    remove_button = ctk.CTkButton(frame, text="Remove Task 2", command=remove_task_example)
-    remove_button.grid(row=1, column=0, pady=20, padx=15)
 
     app.mainloop()
 
