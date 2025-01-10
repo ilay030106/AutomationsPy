@@ -87,17 +87,25 @@ class Calendar(ctk.CTkFrame):
             self.selected_date = f"{day:02d}/{month:02d}/{year}"
 
             # Reset the color of the previously selected button
+            if self.selected_button:
+                self.selected_button.configure(fg_color="#0432bf", hover_color="#0747f7")  # Default colors
 
-
-
-            # Highlight the selected button
-            button.configure(fg_color="#0963ff")  # Darker color
+            # Highlight the selected button with a much brighter blue
+            button.configure(fg_color="#4A90FF", hover_color="#74B9FF")  # Brighter selected blue
             self.selected_button = button
 
             if self.command:
                 self.command(self.selected_date)
 
-        button = ctk.CTkButton(self.frame_days, text=str(day), width=30, height=30, command=on_click,fg_color="#0747f7")
+        button = ctk.CTkButton(
+            self.frame_days,
+            text=str(day),
+            width=30,
+            height=30,
+            command=on_click,
+            fg_color="#0432bf",  # Darker default blue
+            hover_color="#0747f7",  # Slightly lighter hover blue
+        )
         button.grid(row=row, column=col, padx=2, pady=2)
 
     def next_month(self):
@@ -132,6 +140,6 @@ class Calendar(ctk.CTkFrame):
 
     def resetButton(self):
         if self.selected_button :
-            self.selected_button.configure(fg_color="#0747f7", hover_color="#0963ff")
+            self.selected_button.configure(fg_color="#053cd7", hover_color="#1a74ff")
 
         self.selected_button = None

@@ -49,13 +49,10 @@ def main_menu_mainloop():
         calculator_mainloop()  # Start the calculator GUI
 
     # Function to handle placeholder automation
-    def placeholder_automation():
-        """
-        Displays a popup message indicating that the feature is under construction.
-
-        Uses tkinter.messagebox to show an informational message to the user.
-        """
-        messagebox.showinfo("Automation", "This automation is under construction!")
+    def open_to_do_list():
+        main_menu.destroy()
+        from To_do_list import list_mainloop  # Import the calculator module
+        list_mainloop()
 
     # Create a frame for better layout
     frame = ctk.CTkFrame(main_menu)
@@ -79,10 +76,9 @@ def main_menu_mainloop():
         frame,
         text="Placeholder Automation",  # Button text
         font=font_buttons,
-        command=placeholder_automation,  # Action to perform when clicked
+        command=open_to_do_list,  # Action to perform when clicked
         height=40,
         width=200,
-        state=ctk.DISABLED,  # Properly disable the button
         fg_color=button_blue,  # Button default color
         hover_color=button_blue_hover,  # Hover color for the button
     ).grid(row=1, column=0, pady=10, padx=10)

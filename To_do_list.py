@@ -18,21 +18,23 @@ class List(ctk.CTkScrollableFrame):
         super().__init__(master, **kwargs)
         self.grid_columnconfigure(0, weight=1)
         self.command = command
-        self.tasks = {}  # Dictionary to store tasks by their ID
-        self.row_index = 0  # To keep track of rows for grid placement
+        self.tasks = {}
+        self.row_index = 0
 
     def add_item(self, title, desc, date):
-        # Create a Task instance
         task = Task(title.capitalize(), desc, date)
 
-        # Create a container frame for the task
         container = ctk.CTkFrame(self, width=320, height=70, corner_radius=30)
         container.grid_columnconfigure(0, weight=1)
         container.grid_columnconfigure(1, weight=0)
         container.grid(row=self.row_index, column=0, padx=(0, 10), pady=5, sticky="ew")
 
         # Create label and button
-        label = ctk.CTkLabel(container, text=task.title, font=("Arial", 18, "bold"))
+        if len(title)>=15:
+            title=title[:15]+"..."
+            label = ctk.CTkLabel(container, text=title, font=("Arial", 18, "bold"))
+        else:
+            label = ctk.CTkLabel(container, text=task.title, font=("Arial", 18, "bold"))
         button = ctk.CTkButton(
             container,
             text="Remove",
@@ -52,18 +54,17 @@ class List(ctk.CTkScrollableFrame):
             "<Button-1>", lambda event, task=task: self.on_container_click(task)
         )
 
-        # Store the task and its container
         self.tasks[task.id] = container
         self.row_index += 1
 
     def on_container_click(self, task):
         """Handle the click event on the container."""
         title_label.configure(text="Title:")
-        title_text.configure(text=task.title)
+        title_text.configure(text=task.title, wraplength=400, justify="left")
         desc_label.configure(text="Description:")
-        desc_text.configure(text=task.desc)
+        desc_text.configure(text=task.desc, wraplength=400, justify="left")
         date_label.configure(text="Date:")
-        date_text.configure(text=task.date)
+        date_text.configure(text=task.date, wraplength=400, justify="left")
 
     def confirm_remove_item(self, task_id):
         """Display a confirmation dialog before removing an item."""
@@ -76,9 +77,9 @@ class List(ctk.CTkScrollableFrame):
     def remove_item(self, task_id):
         """Remove the task by destroying its container."""
         if task_id in self.tasks:
-            self.tasks[task_id].destroy()  # Destroy the container
-            del self.tasks[task_id]  # Remove from the dictionary
-            self.rearrange_grid()  # Reorganize the grid layout
+            self.tasks[task_id].destroy()
+            del self.tasks[task_id]
+            self.rearrange_grid()
 
     def rearrange_grid(self):
         """Rearrange items in the grid after one is removed."""
@@ -86,7 +87,6 @@ class List(ctk.CTkScrollableFrame):
         for task_id, container in self.tasks.items():
             container.grid(row=self.row_index, column=0, padx=(0, 10), pady=5, sticky="ew")
             self.row_index += 1
-
 
 def list_mainloop():
     # CustomTkinter appearance settings
@@ -116,19 +116,19 @@ def list_mainloop():
     global title_label, title_text, date_label, date_text, desc_label, desc_text
 
     title_label = ctk.CTkLabel(display_frame, text="", font=("Arial", 16), anchor="w")
-    title_label.grid(row=0, column=0, sticky="w", padx=20, pady=10)
-    title_text = ctk.CTkLabel(display_frame, text="", font=("Arial", 16), anchor="w")
-    title_text.grid(row=0, column=1, sticky="w", padx=20, pady=10)
+    title_label.grid(row=0, column=0, sticky="nw", padx=20, pady=10)
+    title_text = ctk.CTkLabel(display_frame, text="", font=("Arial", 16), anchor="w", wraplength=400, justify="left")
+    title_text.grid(row=0, column=1, sticky="nw", padx=20, pady=10)
 
     desc_label = ctk.CTkLabel(display_frame, text="", font=("Arial", 16), anchor="w")
-    desc_label.grid(row=1, column=0, sticky="w", padx=20, pady=10)
-    desc_text = ctk.CTkLabel(display_frame, text="", font=("Arial", 16), anchor="w")
-    desc_text.grid(row=1, column=1, sticky="w", padx=20, pady=10)
+    desc_label.grid(row=1, column=0, sticky="nw", padx=20, pady=10)
+    desc_text = ctk.CTkLabel(display_frame, text="", font=("Arial", 16), anchor="w", wraplength=400, justify="left")
+    desc_text.grid(row=1, column=1, sticky="nw", padx=20, pady=10)
 
-    date_label = ctk.CTkLabel(display_frame, text="", font=("Arial", 16), anchor="e")
-    date_label.grid(row=2, column=0, sticky="e", padx=20, pady=10)
-    date_text = ctk.CTkLabel(display_frame, text="", font=("Arial", 16), anchor="e")
-    date_text.grid(row=2, column=1, sticky="e", padx=20, pady=10)
+    date_label = ctk.CTkLabel(display_frame, text="", font=("Arial", 16), anchor="w")
+    date_label.grid(row=2, column=0, sticky="nw", padx=20, pady=10)
+    date_text = ctk.CTkLabel(display_frame, text="", font=("Arial", 16), anchor="w", wraplength=400, justify="left")
+    date_text.grid(row=2, column=1, sticky="nw", padx=20, pady=10)
 
     # Create creation frame
     creation_frame = ctk.CTkFrame(app, corner_radius=30)
@@ -143,8 +143,8 @@ def list_mainloop():
     info_frame.grid_rowconfigure((0, 1), weight=1)
 
     # Entry fields
-    title_entry = ctk.CTkEntry(info_frame, placeholder_text="Task Title", width=300)
-    desc_entry = ctk.CTkEntry(info_frame, placeholder_text="Task Description", width=300)
+    title_entry = ctk.CTkEntry(info_frame, placeholder_text="Task Title", width=300, height=40)
+    desc_entry = ctk.CTkEntry(info_frame, placeholder_text="Task Description", width=300, height=40)
     calendar = MyCalender.Calendar(info_frame, width=300, height=200)
 
     title_entry.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
@@ -170,7 +170,9 @@ def list_mainloop():
 
     # Return to Main Menu button
     def return_to_menu():
-        messagebox.showinfo("Main Menu", "Returning to Main Menu!")
+        app.destroy()
+        from main_menu import main_menu_mainloop
+        main_menu_mainloop()
 
     return_button = ctk.CTkButton(creation_frame, text="Main Menu", command=return_to_menu, width=120, fg_color="red", hover_color="darkred")
     return_button.grid(row=2, column=1, pady=(10, 20), sticky="ew", padx=120)
