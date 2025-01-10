@@ -2,6 +2,8 @@ import customtkinter as ctk
 from tkinter import messagebox
 from CTkCalendar import CTkCalendar
 import MyCalender
+import sqlite3
+
 class Task:
     _id_counter = 0  # Class-level variable for auto-increment ID
 
@@ -18,20 +20,26 @@ class List(ctk.CTkScrollableFrame):
         super().__init__(master, **kwargs)
         self.grid_columnconfigure(0, weight=1)
         self.command = command
-        self.tasks = {}
-        self.row_index = 0
+        self.tasks = {}  # Dictionary to store tasks by their ID
+        self.row_index = 0  # To keep track of rows for grid placement
 
-    def add_item(self, title, desc, date):
+    def add_item(self, title, desc, date, save_to_db=True):
+        # Create a Task instance
         task = Task(title.capitalize(), desc, date)
 
+        # Save to database if needed
+        if save_to_db:
+            add_task_to_db(title, desc, date)
+
+        # Create a container frame for the task
         container = ctk.CTkFrame(self, width=320, height=70, corner_radius=30)
         container.grid_columnconfigure(0, weight=1)
         container.grid_columnconfigure(1, weight=0)
         container.grid(row=self.row_index, column=0, padx=(0, 10), pady=5, sticky="ew")
 
         # Create label and button
-        if len(title)>=15:
-            title=title[:15]+"..."
+        if len(title)>15:
+            title =f"{title[:15]}..."
             label = ctk.CTkLabel(container, text=title, font=("Arial", 18, "bold"))
         else:
             label = ctk.CTkLabel(container, text=task.title, font=("Arial", 18, "bold"))
@@ -54,6 +62,7 @@ class List(ctk.CTkScrollableFrame):
             "<Button-1>", lambda event, task=task: self.on_container_click(task)
         )
 
+        # Store the task and its container
         self.tasks[task.id] = container
         self.row_index += 1
 
@@ -77,9 +86,10 @@ class List(ctk.CTkScrollableFrame):
     def remove_item(self, task_id):
         """Remove the task by destroying its container."""
         if task_id in self.tasks:
-            self.tasks[task_id].destroy()
-            del self.tasks[task_id]
-            self.rearrange_grid()
+            self.tasks[task_id].destroy()  # Destroy the container
+            del self.tasks[task_id]  # Remove from the dictionary
+            remove_task_from_db(task_id)  # Remove from database
+            self.rearrange_grid()  # Reorganize the grid layout
 
     def rearrange_grid(self):
         """Rearrange items in the grid after one is removed."""
@@ -87,6 +97,45 @@ class List(ctk.CTkScrollableFrame):
         for task_id, container in self.tasks.items():
             container.grid(row=self.row_index, column=0, padx=(0, 10), pady=5, sticky="ew")
             self.row_index += 1
+
+def initialize_database():
+    conn = sqlite3.connect("tasks.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            description TEXT,
+            date TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def add_task_to_db(title, description, date):
+    conn = sqlite3.connect("tasks.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO tasks (title, description, date)
+        VALUES (?, ?, ?)
+    """, (title, description, date))
+    conn.commit()
+    conn.close()
+
+def remove_task_from_db(task_id):
+    conn = sqlite3.connect("tasks.db")
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+    conn.commit()
+    conn.close()
+
+def load_tasks_from_db():
+    conn = sqlite3.connect("tasks.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM tasks")
+    tasks = cursor.fetchall()
+    conn.close()
+    return tasks
 
 def list_mainloop():
     # CustomTkinter appearance settings
@@ -96,8 +145,8 @@ def list_mainloop():
     # Main application window
     app = ctk.CTk()
     app.title("To-Do List")
-    app.geometry("1200x600")
-
+    app.geometry("1200x680")
+    app.resizable(False,False)
     # Configure grid weights
     app.grid_rowconfigure(0, weight=1)
     app.grid_rowconfigure(1, weight=1)
@@ -115,19 +164,19 @@ def list_mainloop():
 
     global title_label, title_text, date_label, date_text, desc_label, desc_text
 
-    title_label = ctk.CTkLabel(display_frame, text="", font=("Arial", 16), anchor="w")
+    title_label = ctk.CTkLabel(display_frame, text="", font=("Arial", 20), anchor="w")
     title_label.grid(row=0, column=0, sticky="nw", padx=20, pady=10)
-    title_text = ctk.CTkLabel(display_frame, text="", font=("Arial", 16), anchor="w", wraplength=400, justify="left")
+    title_text = ctk.CTkLabel(display_frame, text="", font=("Arial", 20), anchor="w", wraplength=400, justify="left")
     title_text.grid(row=0, column=1, sticky="nw", padx=20, pady=10)
 
-    desc_label = ctk.CTkLabel(display_frame, text="", font=("Arial", 16), anchor="w")
+    desc_label = ctk.CTkLabel(display_frame, text="", font=("Arial", 20), anchor="w")
     desc_label.grid(row=1, column=0, sticky="nw", padx=20, pady=10)
-    desc_text = ctk.CTkLabel(display_frame, text="", font=("Arial", 16), anchor="w", wraplength=400, justify="left")
+    desc_text = ctk.CTkLabel(display_frame, text="", font=("Arial", 20), anchor="w", wraplength=400, justify="left")
     desc_text.grid(row=1, column=1, sticky="nw", padx=20, pady=10)
 
-    date_label = ctk.CTkLabel(display_frame, text="", font=("Arial", 16), anchor="w")
+    date_label = ctk.CTkLabel(display_frame, text="", font=("Arial", 20), anchor="w")
     date_label.grid(row=2, column=0, sticky="nw", padx=20, pady=10)
-    date_text = ctk.CTkLabel(display_frame, text="", font=("Arial", 16), anchor="w", wraplength=400, justify="left")
+    date_text = ctk.CTkLabel(display_frame, text="", font=("Arial", 20), anchor="w", wraplength=400, justify="left")
     date_text.grid(row=2, column=1, sticky="nw", padx=20, pady=10)
 
     # Create creation frame
@@ -143,8 +192,8 @@ def list_mainloop():
     info_frame.grid_rowconfigure((0, 1), weight=1)
 
     # Entry fields
-    title_entry = ctk.CTkEntry(info_frame, placeholder_text="Task Title", width=300, height=40)
-    desc_entry = ctk.CTkEntry(info_frame, placeholder_text="Task Description", width=300, height=40)
+    title_entry = ctk.CTkEntry(info_frame, placeholder_text="Task Title", width=300, height=40,font=("Arial", 18))
+    desc_entry = ctk.CTkEntry(info_frame, placeholder_text="Task Description", width=300, height=40,font=("Arial", 18))
     calendar = MyCalender.Calendar(info_frame, width=300, height=200)
 
     title_entry.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
@@ -166,7 +215,8 @@ def list_mainloop():
             messagebox.showwarning("Invalid Input", "All fields are required to create a task!")
 
     add_button = ctk.CTkButton(creation_frame, text="Add Task", command=add_task, width=120, fg_color="green", hover_color="darkgreen")
-    add_button.grid(row=1, column=1, pady=10, sticky="ew", padx=170)
+    add_button.grid(row=1, column=1, pady=10, sticky="ew", padx=210)
+    frame.grid_columnconfigure(0, weight=1)
 
     # Return to Main Menu button
     def return_to_menu():
@@ -174,20 +224,61 @@ def list_mainloop():
         from main_menu import main_menu_mainloop
         main_menu_mainloop()
 
+
     return_button = ctk.CTkButton(creation_frame, text="Main Menu", command=return_to_menu, width=120, fg_color="red", hover_color="darkred")
-    return_button.grid(row=2, column=1, pady=(10, 20), sticky="ew", padx=120)
+    return_button.grid(row=2, column=1, pady=(10, 20), sticky="ew", padx=180)
 
     # Create the custom List widget
-    lst = List(frame, width=370, height=480, corner_radius=30)
+    lst = List(frame, width=300, height=480, corner_radius=30)
     lst.grid(row=0, column=0, sticky="nsw", padx=15, pady=(20, 20))
 
-    # Add initial tasks
-    lst.add_item("Task 1", "Description 1", "2025-01-09")
-    lst.add_item("Task 2", "Description 2", "2025-01-10")
-    lst.add_item("Task 3", "Description 3", "2025-01-11")
+    def clear_tasks():
+        """Function to clear all tasks from the list and the database."""
+        # Confirm with the user before clearing
+        confirm = messagebox.askyesno(
+            "Confirm Clear", "Are you sure you want to clear all tasks?"
+        )
+        if not confirm:
+            return
+
+        # Clear the database
+        conn = sqlite3.connect("tasks.db")
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM tasks")
+        conn.commit()
+        conn.close()
+
+        # Clear the tasks from the List widget
+        for task_id, container in lst.tasks.items():
+            container.destroy()  # Destroy the UI element
+        lst.tasks.clear()  # Clear the dictionary
+        lst.row_index = 0  # Reset the row index
+
+        # Inform the user
+        messagebox.showinfo("Clear List", "All tasks have been cleared!")
+
+    # Add a row configuration for the Clear List button
+    frame.grid_rowconfigure(1, weight=0)
+
+    # Add the Clear List button
+    clear_btn = ctk.CTkButton(
+        frame,
+        text="Clear List",
+        command=clear_tasks,
+        width=120,
+        fg_color="red",
+        hover_color="darkred",
+    )
+    clear_btn.grid(row=1, column=0, pady=10, sticky="ew", padx=20)
+
+    # Load tasks from database
+    tasks = load_tasks_from_db()
+    for task in tasks:
+        lst.add_item(task[1], task[2], task[3], save_to_db=False)
 
     app.mainloop()
 
 
 if __name__ == "__main__":
+    initialize_database()
     list_mainloop()
