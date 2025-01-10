@@ -5,7 +5,7 @@ def main_menu_mainloop():
     Launches the main menu window using the customtkinter library.
 
     This function creates a GUI window with options to navigate to different automation systems,
-    such as a calculator, or placeholder options for future automations. The user can also exit
+    such as a calculator, or TODO List. The user can also exit
     the application from this menu.
     """
     # Set appearance mode: Choose between "Dark", "Light", or "System" (system default)
@@ -74,7 +74,7 @@ def main_menu_mainloop():
     # Button for a placeholder automation
     ctk.CTkButton(
         frame,
-        text="Placeholder Automation",  # Button text
+        text="To Do List",  # Button text
         font=font_buttons,
         command=open_to_do_list,  # Action to perform when clicked
         height=40,
