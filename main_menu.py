@@ -1,101 +1,41 @@
 import customtkinter as ctk
-import tkinter.messagebox as messagebox
+
 def main_menu_mainloop():
-    """
-    Launches the main menu window using the customtkinter library.
-
-    This function creates a GUI window with options to navigate to different automation systems,
-    such as a calculator, or TODO List. The user can also exit
-    the application from this menu.
-    """
-    # Set appearance mode: Choose between "Dark", "Light", or "System" (system default)
     ctk.set_appearance_mode("Dark")
-
-    # Set a custom button color theme using hex color codes
-    button_blue = "#0747f7"  # Default button color
-    button_blue_hover = "#0963ff"  # Hover color for buttons
-
-    # Set color theme: Options include "blue", "green", "dark-blue", or custom themes
     ctk.set_default_color_theme("blue")
 
-    # Create the main menu window
-    main_menu = ctk.CTk()  # CTk is the main window class in customtkinter
-    main_menu.title("Automation Main Menu")  # Set the window title
-    main_menu.geometry("400x300")  # Set the size of the window in pixels (width x height)
+    main_menu = ctk.CTk()
+    main_menu.title("Automation Main Menu")
+    main_menu.geometry("400x300")
 
-    # Define custom fonts for labels and buttons
-    font_title = ("Helvetica", 24, "bold")  # Font for the title text
-    font_buttons = ("Helvetica", 18)  # Font for the buttons
+    font_title = ("Helvetica", 24, "bold")
+    font_buttons = ("Helvetica", 18)
+    button_blue = "#0747f7"
+    button_blue_hover = "#0963ff"
 
-    # Configure the grid layout for the main menu
     main_menu.columnconfigure(0, weight=1)
     main_menu.rowconfigure(0, weight=1)
 
-    # Create a title label at the top of the window
-    ctk.CTkLabel(
-        main_menu, text="Choose an Automation", font=font_title
-    ).grid(row=0, column=0, pady=(20, 10), sticky="n")
+    ctk.CTkLabel(main_menu, text="Choose an Automation", font=font_title).grid(row=0, column=0, pady=(20, 10), sticky="n")
 
-    # Function to open the calculator GUI
     def open_calculator():
-        """
-        Closes the main menu and opens the calculator GUI.
-
-        This function imports the calculator GUI dynamically to avoid circular imports and
-        starts its main event loop.
-        """
         main_menu.destroy()
-        from calc import calculator_mainloop  # Import the calculator module
-        calculator_mainloop()  # Start the calculator GUI
+        from calc import calculator_mainloop
+        calculator_mainloop()
 
-    # Function to handle placeholder automation
     def open_to_do_list():
         main_menu.destroy()
-        from To_do_list import list_mainloop  # Import the calculator module
+        from To_do_list import list_mainloop
         list_mainloop()
 
-    # Create a frame for better layout
     frame = ctk.CTkFrame(main_menu)
     frame.grid(row=1, column=0, pady=10, padx=20, sticky="nsew")
     frame.columnconfigure(0, weight=1)
 
-    # Button to open the calculator GUI
-    ctk.CTkButton(
-        frame,
-        text="Open Calculator",  # Button text
-        font=font_buttons,
-        command=open_calculator,  # Action to perform when clicked
-        height=40,  # Button height in pixels
-        width=200,  # Button width in pixels
-        fg_color=button_blue,  # Button default color
-        hover_color=button_blue_hover  # Hover color for the button
-    ).grid(row=0, column=0, pady=(20, 10), padx=10)
+    ctk.CTkButton(frame, text="Open Calculator", font=font_buttons, command=open_calculator, height=40, width=200, fg_color=button_blue, hover_color=button_blue_hover).grid(row=0, column=0, pady=(20, 10), padx=10)
+    ctk.CTkButton(frame, text="To Do List", font=font_buttons, command=open_to_do_list, height=40, width=200, fg_color=button_blue, hover_color=button_blue_hover).grid(row=1, column=0, pady=10, padx=10)
+    ctk.CTkButton(frame, text="Exit", font=font_buttons, command=main_menu.destroy, height=40, width=200, fg_color="red", hover_color="darkred").grid(row=2, column=0, pady=(10, 20), padx=10)
 
-    # Button for a placeholder automation
-    ctk.CTkButton(
-        frame,
-        text="To Do List",  # Button text
-        font=font_buttons,
-        command=open_to_do_list,  # Action to perform when clicked
-        height=40,
-        width=200,
-        fg_color=button_blue,  # Button default color
-        hover_color=button_blue_hover,  # Hover color for the button
-    ).grid(row=1, column=0, pady=10, padx=10)
-
-    # Button to exit the main menu
-    ctk.CTkButton(
-        frame,
-        text="Exit",  # Button text
-        font=font_buttons,
-        command=main_menu.destroy,  # Close the main menu window
-        height=40,
-        width=200,
-        fg_color="red",  # Background color of the button
-        hover_color="darkred"  # Hover color for the button
-    ).grid(row=2, column=0, pady=(10, 20), padx=10)
-
-    # Start the main event loop for the main menu
     main_menu.mainloop()
 
 if __name__ == "__main__":

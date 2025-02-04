@@ -1,193 +1,179 @@
 import customtkinter as ctk
 import tkinter.messagebox as messagebox
 import sqlite3
+import math
 
-def initialize_database():
-    conn = sqlite3.connect("calculator_history.db")
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            equation TEXT NOT NULL
-        )
-    """)
-    conn.commit()
-    conn.close()
+class CalculatorApp:
+    def __init__(self):
+        self.conn = sqlite3.connect("calculator_history.db")
+        self.cursor = self.conn.cursor()
+        self.initialize_database()
+        self.equation_history = self.load_history_from_db()
+        self.scrollable_frame = None
+        self.memory = None
+        self.history_visible = False
+        self.create_ui()
 
-def add_equation_to_db(equation):
-    conn = sqlite3.connect("calculator_history.db")
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO history (equation) VALUES (?)", (equation,))
-    conn.commit()
-    conn.close()
+    def initialize_database(self):
+        self.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                equation TEXT NOT NULL
+            )
+        """)
+        self.conn.commit()
 
-def clear_database():
-    conn = sqlite3.connect("calculator_history.db")
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM history")
-    conn.commit()
-    conn.close()
+    def add_equation_to_db(self, equation):
+        self.cursor.execute("INSERT INTO history (equation) VALUES (?)", (equation,))
+        self.conn.commit()
 
-def load_history_from_db():
-    conn = sqlite3.connect("calculator_history.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT equation FROM history")
-    equations = cursor.fetchall()
-    conn.close()
-    return [eq[0] for eq in equations]
+    def clear_database(self):
+        self.cursor.execute("DELETE FROM history")
+        self.conn.commit()
 
-def calculator_mainloop():
-    """
-    Launches the calculator GUI using the customtkinter library.
-    """
-    # Set appearance mode
-    ctk.set_appearance_mode("Dark")
-    ctk.set_default_color_theme("blue")
-    global res
-    res=None
-    # Create the calculator window
-    app = ctk.CTk()
-    app.title("Calculator")
-    app.geometry("800x600")
+    def load_history_from_db(self):
+        self.cursor.execute("SELECT equation FROM history")
+        equations = self.cursor.fetchall()
+        return [eq[0] for eq in equations]
 
-    # Fonts and colors
-    font_buttons = ("Helvetica", 26)
-    font_display = ("Helvetica", 24)
-    button_blue = "#0747f7"
-    button_blue_hover = "#0963ff"
+    def create_ui(self):
+        ctk.set_appearance_mode("Dark")
+        ctk.set_default_color_theme("blue")
 
-    # Calculator display
-    disp = ctk.CTkEntry(app, font=font_display, justify="right", corner_radius=10, height=50, width=400)
-    disp.grid(row=1, column=0, columnspan=4, pady=10, padx=10)
+        self.app = ctk.CTk()
+        self.app.title("Calculator")
+        self.app.geometry("800x600")
 
-    # History storage
-    equation_history = load_history_from_db()
-    scrollable_frame = None  # To store the scrollable frame reference
+        font_buttons = ("Helvetica", 26)
+        font_display = ("Helvetica", 24)
+        button_blue = "#0747f7"
+        button_blue_hover = "#0963ff"
 
-    def clear_history():
-        nonlocal scrollable_frame
-        clear_database()
-        equation_history.clear()
-        if scrollable_frame:
-            scrollable_frame.destroy()
-        scrollable_frame = ctk.CTkScrollableFrame(app, width=300, height=400)
-        scrollable_frame.grid(row=2, column=4, rowspan=4, padx=10, sticky="nsew")
+        self.disp = ctk.CTkEntry(self.app, font=font_display, justify="right", corner_radius=10, height=50, width=400)
+        self.disp.grid(row=1, column=0, columnspan=4, pady=10, padx=10)
+
+        self.clear_history_btn = ctk.CTkButton(self.app, text="Clear History", font=font_display, command=self.clear_history, width=150, height=70)
+        self.clear_history_btn.grid(row=7, column=4, padx=10)
+
+        self.toggle_history_btn = ctk.CTkButton(self.app, text="Toggle History", font=font_display, command=self.toggle_history, width=150, height=70)
+        self.toggle_history_btn.grid(row=7, column=3, padx=10)
+
+        self.refresh_history()
+
+        btns = ['7', '8', '9', '/', '4', '5', '6', '*', '1', '2', '3', '-', '0', '.', '=', '+', 'C', '√', '%', 'M+', 'MR', 'MC']
+        for i, b in enumerate(btns):
+            ctk.CTkButton(self.app, text=b, command=lambda x=b: self.clk(x), font=font_buttons, height=70, width=90, corner_radius=20, fg_color=button_blue, hover_color=button_blue_hover, text_color="white").grid(row=i // 4 + 2, column=i % 4, padx=5, pady=5)
+
+        ctk.CTkButton(self.app, text="Exit to Main Menu", command=self.return_to_main, font=font_buttons, height=40, width=220, corner_radius=15, fg_color="#ff0f07", hover_color="#6e0602", text_color="white").grid(row=8, column=1, columnspan=2, pady=10, padx=5)
+
+        for i in range(9):
+            self.app.grid_rowconfigure(i, weight=1)
+        for j in range(5):
+            self.app.grid_columnconfigure(j, weight=1)
+
+        self.app.mainloop()
+
+    def clear_history(self):
+        self.clear_database()
+        self.equation_history.clear()
+        if self.scrollable_frame:
+            self.scrollable_frame.destroy()
+        self.scrollable_frame = ctk.CTkScrollableFrame(self.app, width=300, height=400)
+        self.scrollable_frame.grid(row=2, column=4, rowspan=4, padx=10, sticky="nsew")
         messagebox.showinfo("Equation History", "Equation History has been cleared!")
 
-    clear_history_btn = ctk.CTkButton(app, text="Clear History", font=font_display, command=clear_history, width=150,
-                                      height=70)
-    clear_history_btn.grid(row=6, column=4, padx=10)
+    def refresh_history(self):
+        if self.scrollable_frame:
+            self.scrollable_frame.destroy()
+        self.scrollable_frame = ctk.CTkScrollableFrame(self.app, width=300, height=400)
+        self.scrollable_frame.grid(row=2, column=4, rowspan=4, padx=10, sticky="nsew")
+        self.scrollable_frame.grid_columnconfigure(0, weight=1)
 
-    # Function to refresh history
-    def refresh_history():
-        """Clears and repopulates the scrollable frame with updated history."""
-        nonlocal scrollable_frame
+        for i, equation in enumerate(self.equation_history):
+            ctk.CTkButton(self.scrollable_frame, text=equation, font=("Helvetica", 24), anchor="center", command=lambda eq=equation: self.set_equation(eq), fg_color="transparent").grid(row=i, column=0, sticky="we", padx=10, pady=5)
 
-        # Clear the previous scrollable frame if it exists
-        if scrollable_frame:
-            scrollable_frame.destroy()
+    def set_equation(self, equation):
+        self.disp.delete(0, ctk.END)
+        self.disp.insert(0, equation.split("=")[1])
 
-        # Create a new scrollable frame
-        scrollable_frame = ctk.CTkScrollableFrame(app, width=300, height=400)
-        scrollable_frame.grid(row=2, column=4, rowspan=4, padx=10, sticky="nsew")
-        scrollable_frame.grid_columnconfigure(0, weight=1)
-
-        def set_equation(equation):
-            disp.delete(0, ctk.END)
-            disp.insert(0, equation.split("=")[1])
-
-        # Add each history item as a button
-        for i, equation in enumerate(equation_history):
-            ctk.CTkButton(
-                scrollable_frame,
-                text=equation,
-                font=("Helvetica", 24),
-                anchor="center",
-                command=lambda eq=equation: set_equation(eq),  # Pass equation to set_equation
-                fg_color="transparent",
-            ).grid(row=i, column=0, sticky="we", padx=10, pady=5)
-
-    # Button click handler
-    def clk(b):
-        # Handle "=" for calculation
+    def clk(self, b):
         if b == '=':
             try:
-                # Evaluate the current expression in the display
-                eq = disp.get()
-                result = eval(disp.get())
-                # Display the result and prepare it for the next operation
-                disp.delete(0, ctk.END)
-                disp.insert(0, str(result))
-                # Add the result to the history
+                eq = self.disp.get()
+                result = eval(self.disp.get())
+                self.disp.delete(0, ctk.END)
+                self.disp.insert(0, str(result))
                 full_equation = f"{eq} = {result}"
-                equation_history.append(full_equation)
-                add_equation_to_db(full_equation)
-                refresh_history()
+                self.equation_history.append(full_equation)
+                self.add_equation_to_db(full_equation)
+                self.refresh_history()
             except Exception:
-                # Handle invalid expressions
-                disp.delete(0, ctk.END)
-                disp.insert(0, "Error")
-
-        # Handle "C" for clearing
+                self.disp.delete(0, ctk.END)
+                self.disp.insert(0, "Error")
         elif b == 'C':
-            disp.delete(0, ctk.END)
-
-        # Handle operators and digits
+            self.disp.delete(0, ctk.END)
+        elif b == '√':
+            try:
+                result = math.sqrt(float(self.disp.get()))
+                self.disp.delete(0, ctk.END)
+                self.disp.insert(0, str(result))
+            except Exception:
+                self.disp.delete(0, ctk.END)
+                self.disp.insert(0, "Error")
+        elif b == '%':
+            try:
+                result = float(self.disp.get()) / 100
+                self.disp.delete(0, ctk.END)
+                self.disp.insert(0, str(result))
+            except Exception:
+                self.disp.delete(0, ctk.END)
+                self.disp.insert(0, "Error")
+        elif b == 'M+':
+            try:
+                self.memory = float(self.disp.get())
+            except Exception:
+                self.memory = None
+        elif b == 'MR':
+            if self.memory is not None:
+                self.disp.delete(0, ctk.END)
+                self.disp.insert(0, str(self.memory))
+        elif b == 'MC':
+            self.memory = None
         else:
-            # If "=" is in the display, and an operator is pressed
-            if '=' in disp.get():
+            if '=' in self.disp.get():
                 if b in '-+/*':
-                    # Retain the result and append the operator for a new calculation
-                    result = disp.get().split('=')[0].strip()
-                    disp.delete(0, ctk.END)
-                    disp.insert(0, result + b)
+                    result = self.disp.get().split('=')[0].strip()
+                    self.disp.delete(0, ctk.END)
+                    self.disp.insert(0, result + b)
                 else:
-                    # Replace the result with a new digit or input
-                    disp.delete(0, ctk.END)
-                    disp.insert(0, b)
-            elif "Error" in disp.get():
-                # If "Error" is displayed, replace it with the new input
-                disp.delete(0, ctk.END)
-                disp.insert(0, b)
+                    self.disp.delete(0, ctk.END)
+                    self.disp.insert(0, b)
+            elif "Error" in self.disp.get():
+                self.disp.delete(0, ctk.END)
+                self.disp.insert(0, b)
             else:
-                # For normal operations, just append the input
-                disp.insert(ctk.END, b)
+                self.disp.insert(ctk.END, b)
 
-    # Return to main menu
-    def return_to_main():
-        app.destroy()
+    def toggle_history(self):
+        if self.history_visible:
+            if self.scrollable_frame:
+                self.scrollable_frame.grid_remove()
+            self.clear_history_btn.grid_remove()
+            self.app.geometry("600x600")
+        else:
+            if self.scrollable_frame:
+                self.scrollable_frame.grid()
+            else:
+                self.refresh_history()
+            self.clear_history_btn.grid()
+            self.app.geometry("800x600")
+        self.history_visible = not self.history_visible
+
+    def return_to_main(self):
+        self.conn.close()
+        self.app.destroy()
         from main_menu import main_menu_mainloop
         main_menu_mainloop()
 
-    # Initialize empty history
-    refresh_history()
-
-    # Calculator buttons
-    btns = ['7', '8', '9', '/',
-            '4', '5', '6', '*',
-            '1', '2', '3', '-',
-            '0', '.', '=', '+',
-            'C']
-    for i, b in enumerate(btns):
-        ctk.CTkButton(app, text=b, command=lambda x=b: clk(x), font=font_buttons,
-                      height=70, width=90, corner_radius=20, fg_color=button_blue,
-                      hover_color=button_blue_hover, text_color="white") \
-            .grid(row=i // 4 + 2, column=i % 4, padx=5, pady=5)
-
-    # Exit button
-    ctk.CTkButton(app, text="Exit to Main Menu", command=return_to_main, font=font_buttons,
-                  height=40, width=220, corner_radius=15, fg_color="#ff0f07",
-                  hover_color="#6e0602", text_color="white") \
-        .grid(row=6, column=1, columnspan=2, pady=10, padx=5)
-
-    # Grid configuration
-    for i in range(8):
-        app.grid_rowconfigure(i, weight=1)
-    for j in range(5):  # Add a 5th column for expanded history
-        app.grid_columnconfigure(j, weight=1)
-
-    app.mainloop()
-
 if __name__ == "__main__":
-    initialize_database()
-    calculator_mainloop()
+    CalculatorApp()
